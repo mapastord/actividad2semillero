@@ -1,0 +1,252 @@
+---
+title: "actividad2"
+author: "Miguel Angel Pastor"
+date: "1 de octubre de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ # coercion en R
+
+la coercion en R es de do tipos:
+
+ - implicita 
+ - explicita 
+ 
+```{r}
+# implicita 
+
+#si yo ingreso a un vector caracteres , numeros o logicos esta funcion me permite volverlo como caracteres 
+coer.imp <- c(2, "texto", TRUE)
+coer.imp
+class(coer.imp)  #calss para obtener el tipo de caracter 
+
+```
+ 
+
+```{r}
+# explicita 
+
+as.numeric(coer.imp)  #los que no son numericos los pone como un NA
+as.logical(coer.imp)  #los que no son logicos los pone como un NA
+
+```
+ 
+```{r}
+#esta es una lista 
+
+mi.lista1 <- list(a1 = c(1, 2), a2 = c("rojo", "verde"), a3 = factor(x = c("hombre", "mujer")))
+mi.lista1
+
+as.data.frame(mi.lista1) #para convertir mi lista de datos a una base de datos 
+
+df <- as.data.frame(mi.lista1) # la asigno a df para no tener que ejecutarlo cada rato sino solo llamar a df
+```
+ 
+
+
+## subconjuntos 
+```{r}
+ # subconjuntos de vectores 
+
+prueba <- c(2, 4, 6, 20, 50)
+prueba[1] # me crea un subconjunto solo de la posicion 1 del vector prueba 
+prueba [c(1,5)] #posicion 1 y 5 ( el corchete lo que mermite es crear un subconjunto)
+prueba[1:5] # crear un subconjunto con una secuencia de 1 a 5
+
+
+
+```
+```{r}
+# subconjuntos con matrices 
+
+prueba2 <- matrix(data = c( 10, 15, 20, 50), nrow = 2, ncol= 2)
+prueba2 #[filas, columnas]
+prueba2[2,1] #para obtener solo el numeo 15
+
+```
+ 
+ 
+```{r}
+# subconjunto de listas 
+
+mi.lista1
+mi.lista1$a2 #solo estoy llamando la variable a2
+mi.lista1$a2[2] # estoy diciendo que de la variable a2 me muestre solo el color verde es decir solo la posicion 2 
+```
+ 
+```{r}
+#subconjuntos en bases de datos 
+
+head(iris) #importar una base de datos de R
+iris[1,] # estoy diciendo que me muestre solo la primera fila 
+iris[iris$Sepal.Length > 6.5, ] # estoy diciendo qe de la variable Sepal.Length me muestre los valores mayores a 6.5 de todas las columnas
+```
+ 
+ # lectura de datos
+ 
+```{r, eval=FALSE}
+creditos <- read.csv(file = "Colocaciones_De_Credito_Sector_Agropecuario_2017.csv", sep = ",", encoding = "UTF-8")
+
+head(creditos)
+```
+ 
+ 
+ # escritura de datos 
+ 
+```{r, eval= FALSE} 
+#eval = FALSE es par qe cundo compile no me ejecute esto para que no se demore mucho 
+write.csv(x = creditos, file = "creditos.csv", row.names = FALSE) #para convertir bases de datos que tenga en R a excel
+
+```
+ 
+# conversion a formato .rdata 
+- save(): guardar en formato .rdata
+- load(): importar en formato .rdata 
+
+```{r, eval = FALSE}
+save(creditos, file = "creditos_2017 .rdata") #
+
+
+```
+
+# actividad 2
+
+```{r}
+load(file = "creditos_2017 .rdata")
+```
+
+## estructura interna 
+
+```{r}
+str(creditos)
+```
+
+# dimension de la base de datos 
+
+```{r}
+dim(creditos)
+```
+
+# creditos2
+
+```{r}
+creditos2 <- creditos [creditos$Valor.Inversion >= 100000 & creditos$Valor.Inversion <= 500000000, c("Mes", "Tipo.Productor", "Valor.Inversion", "Departamento.Inversion","Departamento.de.Colocacion.de.Credito", "Plazo", "Genero")]
+
+```
+
+# cambiando nombres de creditos2 
+
+```{r}
+names(creditos2) <- c("mes", "tipoProd", "valor", "deptoInv", "deptoCol", "plazo", "genero")
+names(creditos2)
+
+```
+
+# estructura interna de creditos2
+
+```{r}
+str(creditos2) #como mes lo toma como un entero entonces debemos cambiarlo a un factor (varible categorica) asi:
+
+#una forma
+creditos2$mes <- as.factor(creditos2$mes)
+str(creditos2)
+
+#otra forma 
+creditos2[,1] <- as.factor(creditos2[,1])
+
+#otra forma 
+
+creditos2[,"mes"] <- as.factor(creditos2[,"mes"])
+```
+
+
+# frecuencia absoluta de genero (punto 8)
+
+```{r}
+table(creditos2$genero)#del total de los creditos 270328 son de hombres, 115828 son de mujeres 
+```
+
+# frecuencia relativa por genero 
+
+```{r}
+prop.table(table(creditos2$genero)) # el 65,78% de los creditos son de hombres, el 28,18% de mujeres y el 6,03% de sociedades 
+```
+
+
+# frecuencia relativa por productor (punto 9)
+
+```{r}
+prop.table(table(creditos2$tipoProd))*100
+```
+
+# creditos mensuales en antioquia
+
+```{r}
+#filtrando antioquia (subconjunto con [])
+
+credAnt <- creditos2[creditos2$deptoInv =="ANTIOQUIA",] # numero de creditos en antioquia en totales
+
+#frecuencia absolutas por mes en antioquia
+
+table(credAnt$mes)
+```
+
+# punto 11 departamento de inversion Vs colocacion 
+
+```{r}
+table(creditos2$deptoInv == creditos2$deptoCol) #en 17656 creditos no son invertidos en el mismo departamento solicitado
+
+fabs <- table(creditos2$deptoInv == creditos2$deptoCol) #pongo una frecuencia absoluta en uan variable que se llama fabs
+
+prop.table(fabs)*100 #el 4,29% de los creditos no se ejecutan en el mismo departamento donde se solicito 
+```
+
+# consultas 
+
+## consulta 1
+
+- ¿en que departamento existe la mayor inversion?
+
+```{r}
+# promedio de inversion 
+
+medias <- tapply(creditos2$valor, creditos2$deptoInv, mean)
+max(medias) #ese valor corresponde al mazonas
+min(medias) #ese valor corresponde al vaupes 
+
+#valor maximo de los creditos en colombia por departamentos 
+
+maximo <- tapply(creditos2$valor, creditos2$deptoInv, max)
+maximo
+
+
+#sumatoria del valor de inversion por departamento 
+
+sumatoria <- tapply(creditos2$valor, creditos2$deptoInv, sum)
+sumatoria
+```
+
+# consulta 2
+
+ ¿como es la frecuencia absoluta por genero en cada departamento?
+ 
+```{r}
+table(creditos2$deptoInv, creditos2$genero )
+```
+
+# consulta 3 
+
+¿el plazo de los creditos es igual entre hombres y mujeres?
+ (calculando la media del plazo) 
+ 
+```{r}
+tapply(creditos2$plazo, creditos2$genero, mean) #los hombres tienden a pedir mas plazo en los creditos 
+```
+ 
+ 
+ 
+ 
